@@ -1,7 +1,7 @@
 ---
 name: slc-skill
 description: >-
-  學習共同體公開課影片分析與 16:9 自動插圖簡報生成技能。協助使用者下載 YouTube 影片、語音轉譯、進行「描述-詮釋-反思」課例研究分析，並依據影片截圖重繪抹茶綠繪本插圖，最終生成可編輯文字的 16:9 PPTX 簡報與社群分享圖。
+  學習共同體公開課影片分析與 16:9 自動插圖簡報生成技能。協助使用者下載 YouTube 影片、語音轉譯、進行「描述-詮釋-反思」課例研究分析，並依據影片截圖重繪抹茶綠繪本插圖，最終生成可編輯文字的 16:9 PPTX 簡報與互動式 HTML 網頁簡報。
 ---
 
 # SLC-skill (學習共同體課例探究與簡報生成技能)
@@ -12,7 +12,9 @@ description: >-
 ## 🎯 最終產出成品包括：
 1. **下載的完整影片** (`output/video.mp4`)
 2. **影片的語音轉譯字幕檔** (`output/subtitles.srt` 及其對應逐字稿 `output/transcript.txt`)
-3. **可編輯文字的 16:9 簡報投影片** (`output/slides.pptx`)
+3. **簡報投影片（雙格式輸出）**：
+   - **PPT 簡報檔** (`output/slides.pptx`)：16:9 寬螢幕比例，文字完全可修正。
+   - **HTML 網頁簡報檔** (`output/slides.html`)：基於網頁格式的互動式簡報，支援左右方向鍵與空白鍵切換、自動響應式排版，完美搭配重繪插圖與主題配色。
 
 ## Dependencies
 - **Python 3.10+** (推薦使用 `uv` 執行環境)
@@ -25,10 +27,10 @@ description: >-
 
 ## 🎨 簡報色彩主題設定 (Slide Themes)
 本技能內建支援四種不同視覺氛圍的簡報配色風格。**Agent 執行時必須主動提供這四個選項讓使用者進行選擇**：
-1. **學習共同體哲學風格 (`learning`)**：有機茶白背景 (`RGBColor(238, 242, 235)`)、深松針綠標題、溫潤石板灰內文。溫和、防眼部疲勞，營造聆聽對話氛圍。
-2. **粉彩柔和教育風 (`pastel`)**：暖白背景 (`RGBColor(245, 245, 240)`)、暖深褐標題、柔黑內文。呈現溫暖親和的教學質感。
-3. **科技商務藍風 (`blue`)**：淡藍灰背景 (`RGBColor(230, 240, 250)`)、深海軍藍標題、藍灰內文。專業、清晰、邏輯分明。
-4. **現代極簡黑白風 (`modern`)**：極淡灰背景 (`RGBColor(250, 250, 250)`)、曜石黑標題、中灰內文。極簡、俐落。
+1. **學習共同體哲學風格 (`learning`)**：有機茶白背景、深松針綠標題、溫潤石板灰內文。溫和、防眼部疲勞，營造聆聽對話氛圍。
+2. **粉彩柔和教育風 (`pastel`)**：暖白背景、暖深褐標題、柔黑內文。呈現溫暖親和的教學質感。
+3. **科技商務藍風 (`blue`)**：淡藍灰背景、深海軍藍標題、藍灰內文。專業、清晰、邏輯分明。
+4. **現代極簡黑白風 (`modern`)**：極淡灰背景、曜石黑標題、中灰內文。極簡、俐落。
 
 ---
 
@@ -45,9 +47,11 @@ description: >-
    # 語音轉譯
    whisper output/audio.mp3 --model medium --language zh -o output/ -f srt
    ```
-3. **執行簡報與概念圖生成**（依據使用者所選風格指定 `--style`）：
+3. **執行雙格式簡報與概念圖生成**（依據使用者所選風格指定 `--style`）：
    ```bash
+   # 此指令會自動在 output 目錄下同時產生 slides.pptx 以及 slides.html！
    uv run scripts/classroom_analyzer_helper.py generate-slides --analysis output/analysis.txt --output output/slides.pptx --style learning
+   
    uv run scripts/classroom_analyzer_helper.py generate-image --text output/concept.txt --output output/concept_post.png --style learning
    ```
 
@@ -58,16 +62,15 @@ description: >-
 本技能附帶了一個排版與生圖輔助腳本，具備以下子命令：
 
 ### 1. `generate-slides`
-分析提供的課例研究文本，自動生成 16:9 的 PowerPoint 簡報：
+分析提供的課例研究文本，自動生成 16:9 的 PowerPoint 簡報與同名 HTML 網頁簡報：
 * **參數**：
   * `--analysis`: 課例分析報告文字檔路徑。
-  * `--output`: 輸出的 `.pptx` 檔案路徑。
+  * `--output`: 輸出的 `.pptx` 檔案路徑（同名 `.html` 檔案會自動於同目錄下生成）。
   * `--style`: 簡報風格，支援 `learning`, `pastel`, `blue`, `modern` 四種選擇。
-* **版面規則**：
-  * **版面尺寸**：16:9 寬螢幕比例（寬 13.333 英吋，高 7.5 英吋，預設留白邊距 0.8 英吋）。
-  * **動態標題**：15字內採用 40 Pt，20字內 36 Pt，否則 32 Pt，維持單行呈現。
-  * **動態內文**：根據項目密度自動在 20 Pt - 24 Pt 之間微調，決不超出頁面。
-  * **插圖排版**：程式會自動尋找 `output/images/slide_{N}.png` 檔案，若存在則將文字寬度自動縮小為 6.5 英吋，並在右側插入 4.2 x 4.2 英吋的插圖，保持完美對稱。
+* **排版與儲存規則**：
+  * **版面尺寸**：16:9 寬螢幕比例（寬 13.333 英吋，高 7.5 英吋）。
+  * **動態字級與避讓**：標題單行原則（32-40 Pt）、內文不超出原則（20-24 Pt）。若偵測到插圖，文字框與圖片會自動左右對稱排版。
+  * **鎖定安全機制**：若 `slides.pptx` 已被 PowerPoint 開啟而無法寫入，腳本會自動將其與 HTML 簡報儲存為 `*_copy.pptx` 與 `*_copy.html`，保障分析流程不中斷。
 
 ### 2. `generate-image`
 利用 Pillow 自動將核心概念文案轉換成 FB/IG 分享圖片：
@@ -98,7 +101,7 @@ description: >-
 - 使用 `generate_image` (GPTimage2) 生圖工具，將擷取的畫面作為底圖，重繪為高質感的獨立插圖並儲存至 `output/images/slide_{N}.png`。
 
 ### 4. 產生簡報與社群圖
-- 依據使用者在步驟 1 中選擇的配色主題，執行 `classroom_analyzer_helper.py` 產生可編輯文字的 16:9 寬螢幕簡報 (`output/slides.pptx`)。
+- 依據使用者在步驟 1 中選擇的配色主題，執行 `classroom_analyzer_helper.py` 同時產生可編輯文字的 16:9 寬螢幕簡報 (`output/slides.pptx`) 與互動式 HTML 網頁簡報 (`output/slides.html`)。
 
 ---
 

@@ -345,8 +345,313 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
                 print(f"Error inserting illustration on slide {i+1}: {img_err}", file=sys.stderr)
 
     output_pptx.parent.mkdir(parents=True, exist_ok=True)
-    prs.save(str(output_pptx))
-    print(f"[OK] Created PowerPoint slides: {output_pptx}")
+    try:
+        prs.save(str(output_pptx))
+        print(f"[OK] Created PowerPoint slides: {output_pptx}")
+    except PermissionError:
+        output_pptx = output_pptx.parent / (output_pptx.stem + "_copy.pptx")
+        print(f"[WARNING] Permission denied on saving PPTX (is slides.pptx open in PowerPoint?). Saving to copy instead: {output_pptx}", file=sys.stderr)
+        prs.save(str(output_pptx))
+        print(f"[OK] Created PowerPoint slides: {output_pptx}")
+    
+    # Automatically generate corresponding HTML interactive slides
+    output_html = output_pptx.with_suffix(".html")
+    try:
+        generate_html_slides(expanded_slides, output_html, style)
+    except PermissionError:
+        output_html = output_html.parent / (output_html.stem + "_copy.html")
+        print(f"[WARNING] Permission denied on saving HTML. Saving to copy instead: {output_html}", file=sys.stderr)
+        generate_html_slides(expanded_slides, output_html, style)
+    return 0
+
+
+def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -> int:
+    """Generates an HTML presentation slide deck."""
+    print(f"Generating HTML slides with style '{style}'...")
+    
+    # Styles definitions in hex
+    colors_hex = {
+        "pastel": {"bg": "#F5F5F0", "title": "#503228", "text": "#3C3C3C"},
+        "blue": {"bg": "#E6F0FA", "title": "#0A2850", "text": "#1E3250"},
+        "modern": {"bg": "#FAFAFA", "title": "#1E1E1E", "text": "#505050"},
+        "learning": {"bg": "#EEF2EB", "title": "#23412D", "text": "#4B504B"}
+    }
+    style_config = colors_hex.get(style, colors_hex["modern"])
+    
+    slides_html_list = []
+    
+    for i, slide_info in enumerate(expanded_slides[:15]):
+        title = slide_info["title"]
+        bullets = slide_info["bullets"][:6]
+        
+        # Check if illustration exists
+        illustration_src = f"./images/slide_{i+1}.png"
+        images_dir = output_html.parent / "images"
+        p_img = images_dir / f"slide_{i+1}.png"
+        
+        has_image = p_img.exists()
+        
+        bullets_html = "\n".join(f"          <li>{b}</li>" for b in bullets)
+        
+        image_html = ""
+        if has_image:
+            image_html = f"""
+        <div class="slide-image">
+          <img src="{illustration_src}" alt="Slide {i+1} Illustration">
+        </div>"""
+            
+        slide_html = f"""
+    <section class="slide" id="slide-{i+1}">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>{title}</h2>
+          <ul>
+{bullets_html}
+          </ul>
+        </div>{image_html}
+      </div>
+    </section>"""
+        slides_html_list.append(slide_html)
+        
+    slides_html = "\n".join(slides_html_list)
+    total_slides = len(expanded_slides[:15])
+    presentation_title = expanded_slides[0]["title"] if expanded_slides else "學習共同體公開課分析"
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{presentation_title}</title>
+  <style>
+    :root {{
+      --bg-color: {style_config["bg"]};
+      --title-color: {style_config["title"]};
+      --text-color: {style_config["text"]};
+    }}
+    body {{
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      font-family: 'Microsoft JhengHei', -apple-system, sans-serif;
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }}
+    .slides-container {{
+      position: relative;
+      width: 90vw;
+      max-width: 1200px;
+      height: 70vh;
+      min-height: 500px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }}
+    .slide {{
+      display: none;
+      flex: 1;
+      padding: 40px;
+      box-sizing: border-box;
+    }}
+    .slide.active {{
+      display: flex;
+      animation: fadeIn 0.5s ease-in-out forwards;
+    }}
+    @keyframes fadeIn {{
+      from {{ opacity: 0; transform: translateY(10px); }}
+      to {{ opacity: 1; transform: translateY(0); }}
+    }}
+    .slide-layout {{
+      display: flex;
+      width: 100%;
+      height: 100%;
+      gap: 40px;
+      align-items: center;
+    }}
+    .slide-text {{
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }}
+    .slide-text h2 {{
+      color: var(--title-color);
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 32px;
+      line-height: 1.3;
+      border-left: 5px solid var(--title-color);
+      padding-left: 15px;
+    }}
+    .slide-text ul {{
+      margin: 0;
+      padding-left: 20px;
+    }}
+    .slide-text li {{
+      font-size: 20px;
+      line-height: 1.8;
+      margin-bottom: 12px;
+      list-style-type: square;
+    }}
+    .slide-image {{
+      flex: 0.8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }}
+    .slide-image img {{
+      max-width: 100%;
+      max-height: 90%;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      object-fit: cover;
+      aspect-ratio: 1;
+    }}
+    .controls {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }}
+    .btn {{
+      background: var(--title-color);
+      color: var(--bg-color);
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }}
+    .btn:hover {{
+      opacity: 0.9;
+    }}
+    .btn:active {{
+      transform: scale(0.98);
+    }}
+    .btn:disabled {{
+      background: #ccc;
+      cursor: not-allowed;
+    }}
+    .progress-bar-container {{
+      flex: 1;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      margin: 0 40px;
+      overflow: hidden;
+    }}
+    .progress-bar {{
+      height: 100%;
+      background: var(--title-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }}
+    .slide-counter {{
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--text-color);
+      min-width: 60px;
+      text-align: right;
+    }}
+    @media (max-width: 768px) {{
+      .slide-layout {{
+        flex-direction: column;
+        overflow-y: auto;
+      }}
+      .slide-image {{
+        height: auto;
+        margin-top: 20px;
+      }}
+      .slide-image img {{
+        max-height: 200px;
+      }}
+    }}
+  </style>
+</head>
+<body>
+
+  <div class="slides-container">
+{slides_html}
+    
+    <!-- Navigation Controls -->
+    <div class="controls">
+      <button class="btn" id="prev-btn" onclick="changeSlide(-1)">上一頁</button>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <button class="btn" id="next-btn" onclick="changeSlide(1)">下一頁</button>
+      <span class="slide-counter" id="slide-counter">1 / {total_slides}</span>
+    </div>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const slideCounter = document.getElementById('slide-counter');
+
+    function showSlide(index) {{
+      slides.forEach((slide, i) => {{
+        slide.classList.toggle('active', i === index);
+      }});
+      
+      currentSlideIndex = index;
+      
+      // Update buttons
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === totalSlides - 1;
+      
+      // Update progress bar
+      const progressPercent = ((index + 1) / totalSlides) * 100;
+      progressBar.style.width = `${{progressPercent}}%`;
+      
+      // Update counter
+      slideCounter.innerText = `${{index + 1}} / ${{totalSlides}}`;
+    }}
+
+    function changeSlide(direction) {{
+      let targetIndex = currentSlideIndex + direction;
+      if (targetIndex >= 0 && targetIndex < totalSlides) {{
+        showSlide(targetIndex);
+      }}
+    }}
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {{
+      if (e.key === 'ArrowRight' || e.key === ' ') {{
+        changeSlide(1);
+      }} else if (e.key === 'ArrowLeft') {{
+        changeSlide(-1);
+      }}
+    }});
+
+    // Initialize first slide
+    showSlide(0);
+  </script>
+</body>
+</html>
+"""
+    output_html.parent.mkdir(parents=True, exist_ok=True)
+    output_html.write_text(html_content, encoding="utf-8")
+    print(f"[OK] Created HTML slides: {output_html}")
     return 0
 
 

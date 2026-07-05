@@ -1,11 +1,13 @@
 # SLC-skill (學習共同體課例探究與 16:9 簡報生成技能)
 
-這個儲存庫封裝了「學習共同體（Study of Learning Community, SLC）」課堂公開課影片的分析、轉譯、關鍵畫格擷取重繪、以及可編輯文字的 16:9 PowerPoint 簡報排版生成流程。
+這個儲存庫封裝了「學習共同體（Study of Learning Community, SLC）」課堂公開課影片的分析、轉譯、關鍵畫格擷取重繪、以及 16:9 PowerPoint / 互動式 HTML 簡報排版雙重格式生成流程。
 
 ## 🎯 最終產出成品包括：
 1. **下載的完整影片** (`output/video.mp4`)
 2. **影片的語音轉譯字幕檔** (`output/subtitles.srt` 及其對應逐字稿 `output/transcript.txt`)
-3. **可編輯文字的 16:9 簡報投影片** (`output/slides.pptx`)
+3. **簡報投影片（雙格式輸出）**：
+   - **PPT 簡報檔** (`output/slides.pptx`)：16:9 寬螢幕比例，文字完全可修正。
+   - **HTML 網頁簡報檔** (`output/slides.html`)：基於網頁格式的互動式簡報，支援左右方向鍵與空白鍵切換、自動響應式排版，完美搭配重繪插圖與主題配色。
 
 ## 📁 目錄結構
 
@@ -62,10 +64,10 @@ ffmpeg -y -ss 00:01:12 -i output/video.mp4 -vframes 1 -q:v 2 output/screenshots/
 ```
 隨後使用 AI 影像生成工具，以該截圖為基底（`ImagePaths`）重繪為「抹茶綠風格的日本溫潤水彩繪本插畫」，儲存至 `output/images/slide_{N}.png`。
 
-### 4. 生成可編輯文字的 16:9 PPTX 簡報
-執行腳本即可產出排版平衡、字級自動計算且不溢出頁面的 16:9 寬螢幕簡報檔（依據選擇風格傳入對應的 `--style` 參數）：
+### 4. 生成可編輯文字的 16:9 PPTX / HTML 雙格式簡報
+執行腳本即可產出排版平衡、字級自動計算且不溢出頁面的簡報檔（依據選擇風格傳入對應的 `--style` 參數，HTML 與 PPTX 會同步於同目錄下生成）：
 ```bash
-# 產生簡報 (例如使用 learning 配色)
+# 產生簡報 (例如使用 learning 配色，會自動產出 output/slides.pptx 以及 output/slides.html)
 uv run scripts/classroom_analyzer_helper.py generate-slides --analysis output/analysis.txt --output output/slides.pptx --style learning
 
 # 產生 FB/IG 分享概念圖
