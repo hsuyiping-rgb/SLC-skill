@@ -27,16 +27,6 @@ SLC-skill/
 3. **`blue`**：科技藍商務風（淡藍灰背景、海軍藍標題、藍灰內文）。
 4. **`modern`**：極簡黑白風（極淡灰背景、曜石黑標題、中灰內文）。
 
-## 🛠️ 安裝依賴
-
-本專案需要 Python 3.10+ 及 FFmpeg。推薦使用 Python 工具 `uv` 來快速安裝並執行。
-
-```bash
-# 安裝 Python 庫依賴
-pip install python-pptx Pillow
-# 或者使用 uv 執行時自動載入（參見 Quick Start）
-```
-
 ---
 
 ## 🚀 快速使用指南
@@ -54,8 +44,9 @@ ffmpeg -i output/video.mp4 -q:a 0 -map a output/audio.mp3
 whisper output/audio.mp3 --model medium --language zh -o output/ -f srt
 ```
 
-### 2. 進行課例研究分析
-對照逐字稿進行「描述 ➔ 詮釋 ➔ 反思」分析，並將結果儲存於 `output/analysis.txt`。
+### 2. 詢問 NotebookLM 連接與課例研究分析
+- **詢問使用者**：「請問您有沒有要連接 NotebookLM 的筆記來作為簡報分析的架構？如果有，請提供筆記的名稱（與內容）。」
+- 將 NotebookLM 筆記的結構與內容，作為生成簡報分析報告 (`analysis.txt`) 的核心架構，再對齊語音逐字稿進行「描述-詮釋-反思」三階層分析。
 
 ### 3. 擷取影片畫面與 GPTimage2 重繪
 利用 `ffmpeg` 擷取影片關鍵影格：
