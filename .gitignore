@@ -1,0 +1,30 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.uv/
+
+# Environment files
+.venv/
+venv/
+ENV/
+env/
+
+# Project output / data directories
+output/
+temp/
+*.log
+*.mp3
+*.mp4
+*.srt
+*.txt
+*.pptx
+*.png
+
+# OS / Editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
