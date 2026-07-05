@@ -217,18 +217,19 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
             continue
         if line.startswith("# ") or line.startswith("## ") or line.startswith("### "):
             # Heading -> New Slide
-            title = line.replace("#", "").strip()
+            title = line.replace("#", "").strip().replace("**", "").replace("*", "")
             if current_slide:
                 slides_data.append(current_slide)
             current_slide = {"title": title, "bullets": []}
         elif line.startswith("-") or line.startswith("*") or line.startswith("1."):
             # Bullet point
-            bullet = line.lstrip("-*1. ").strip()
+            bullet = line.lstrip("-*1. ").strip().replace("**", "").replace("*", "")
             if current_slide:
                 current_slide["bullets"].append(bullet)
         elif current_slide and len(line) > 10:
             # Descriptive text as sub-bullet or paragraph
-            current_slide["bullets"].append(line)
+            bullet = line.strip().replace("**", "").replace("*", "")
+            current_slide["bullets"].append(bullet)
 
     if current_slide:
         slides_data.append(current_slide)
