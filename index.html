@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>宇津木台小學《摩其摩其樹》公開課課例分析報告</title>
+  <style>
+    :root {
+      --bg-color: #EEF2EB;
+      --title-color: #23412D;
+      --text-color: #4B504B;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      font-family: 'Microsoft JhengHei', -apple-system, sans-serif;
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .slides-container {
+      position: relative;
+      width: 90vw;
+      max-width: 1200px;
+      height: 70vh;
+      min-height: 500px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .slide {
+      display: none;
+      flex: 1;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    .slide.active {
+      display: flex;
+      animation: fadeIn 0.5s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      gap: 40px;
+      align-items: center;
+    }
+    .slide-text {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .slide-text h2 {
+      color: var(--title-color);
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 32px;
+      line-height: 1.3;
+      border-left: 5px solid var(--title-color);
+      padding-left: 15px;
+    }
+    .slide-text ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .slide-text li {
+      font-size: 20px;
+      line-height: 1.8;
+      margin-bottom: 12px;
+      list-style-type: square;
+    }
+    .slide-image {
+      flex: 0.8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+    .slide-image img {
+      max-width: 100%;
+      max-height: 90%;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      object-fit: cover;
+      aspect-ratio: 1;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn {
+      background: var(--title-color);
+      color: var(--bg-color);
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .progress-bar-container {
+      flex: 1;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      margin: 0 40px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--title-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .slide-counter {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--text-color);
+      min-width: 60px;
+      text-align: right;
+    }
+    @media (max-width: 768px) {
+      .slide-layout {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .slide-image {
+        height: auto;
+        margin-top: 20px;
+      }
+      .slide-image img {
+        max-height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slides-container">
+
+    <section class="slide" id="slide-1">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>宇津木台小學《摩其摩其樹》公開課課例分析報告</h2>
+          <ul>
+          <li>本報告針對日本八王子市立宇津木台小學的國語公開課進行深度課例研究。</li>
+          <li>結合 NotebookLM 學習共同體哲學文獻，探究行動中反思、限制型符碼與邊緣參與等學理。</li>
+          <li>透過「描述 ➔ 詮釋 ➔ 反思」三階層與「傾聽、串聯、回歸」對話架構，剖析教學現場。</li>
+          <li>探索教師如何建立公共溝通的民主語言，促進改革主體認同的自覺轉化。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_1.png" alt="Slide 1 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-2">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>課堂基本資訊與教材背景</h2>
+          <ul>
+          <li>授課學校：日本八王子市立宇津木台小學（Utsukidai Elementary School）。</li>
+          <li>授課學科：國語（日語語文與文學欣賞）。</li>
+          <li>教學教材：知名繪本文學作品《摩其摩其樹》（モチモチの木，齊藤隆介著）。</li>
+          <li>故事主線：膽小的主角「豆太」為了在深夜拯救肚子劇痛的爺爺，鼓起勇氣光腳在雪地狂奔找醫生的故事。</li>
+          <li>教材呈現：教材保留原作原文，未進行改寫或縮減，整篇課文長達十二頁，提供學生完整的文學語境與深入閱讀的空間。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_2.png" alt="Slide 2 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-3">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>學習共同體之「核心哲學」觀點</h2>
+          <ul>
+          <li>限制型符碼的集體意識：以 Bernstein 的限制型符碼（Restricted Code）觀之，學習共同體建立於高度共享的默契與「我們」的心理認同，使溝通更流暢快速。</li>
+          <li>從邊緣參與到核心身份：呼應 Lave & Wenger 的實踐共同體理論，學習即是「成為另一個人」的身份建構過程。學生從合法的邊緣參與者，在課堂中逐步轉化為「自覺且成熟的學習者」。</li>
+          <li>年長教師的柔軟改變：資深教師在推動第一年即展現開放柔軟的學習態度，捨棄傳統權權威與被動接受知識，是學校民主公共性成功改革的重要支柱。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_3.png" alt="Slide 3 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-4">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>學習共同體之「課堂座位與小組協同」</h2>
+          <ul>
+          <li>U字型座位配置：課堂採用「ㄇ字型」（U字型）座位，讓所有學生能互相看見彼此的表情，建立公共聆聽與面對面溝通的物理基礎。</li>
+          <li>協同合作與權力去中心：小組討論時，學生自然地轉向彼此，針對課本中自己劃記的地方展開對話。去中心化的安排降低了發言焦慮與權力壓制。</li>
+          <li>直覺與主觀知識的發聲：學生不需要起立大聲向教師報告，而是在自然的討論中相互討論，讓平日在邊緣的學生也能安心發表主觀的想法。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_4.png" alt="Slide 4 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-5">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>觀課視角：教師的「傾聽」與「眼睛觀察」</h2>
+          <ul>
+          <li>用眼睛聽的行動中反思：授課教師展現 Schön 所稱的「行動中反思（Reflection-in-action）」，她用眼睛專注地觀察學生的眼神與思考狀態，作為即時微調教學設計的依據。</li>
+          <li>打破技術理性的束縛：教師並非死板地執行預設的教學計畫（技術理性），而是將教學視為現場即時的對話與探究，知行不可分離。</li>
+          <li>靜態的守護者：教師在小組討論時站在適當位置用目光覆蓋全班，避免频繁移動干擾學生的專注力，守護安全的課堂氛圍。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_5.png" alt="Slide 5 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-6">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>觀課視角：教師的「最小幫助」原則</h2>
+          <ul>
+          <li>避免依賴與沉默接受：教師堅持「最小幫助」原則，不急於給予答案，避免學生重回「沉默和接受知識」的被動狀態。</li>
+          <li>引導程式的知識檢驗：當學生遇到阻礙，教師引導同儕互助，讓學生按照一定的程式或標準對相關知識的可靠性作出檢驗，提升認知自主性。</li>
+          <li>精準的回收時機：當小組討論聲音變大（通常意味著思考停止或轉向閒聊）時，教師在第一時間以適度音量將全班注意力收回，確保探究深度。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_6.png" alt="Slide 6 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-7">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>對話架構一：學生的「傾聽」與「自我提問」</h2>
+          <ul>
+          <li>杜威的反思態度體現：學生在自己覺得有趣或不懂的地方畫記，體現了杜威的三種反思態度：心胸開闊、責任感以及全神貫注。</li>
+          <li>公開表達不懂的安全感：學生在公開課環境中能坦然說出「這裡我不懂」，展現對自我錯誤可能性的包容（心胸開闊）及對學習的責任感。</li>
+          <li>以真實疑問為學習起點：學習的起點源於內心的真實疑問，而非教師預設的問題清單，使閱讀成為學生主體性探索的旅程。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_7.png" alt="Slide 7 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-8">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>對話架構二：學生的「串聯」與「思考建構」</h2>
+          <ul>
+          <li>學生中心討論的輔導：對話不再是單向回應教師，而是學生彼此回應。教師扮演輔導者（facilitator），激發學生的後設認知（metacognition）。</li>
+          <li>相互接力與思考建構：學生的發言緊密串聯在前人的基礎上。透過聆聽同儕多元的觀點，學生原有的單一想法被解構，進而共構出更豐富的語意。</li>
+          <li>同儕互動中的認知躍升：學生在對話中互為資源，透過語言的碰撞與交融，在協同中共同跨越理解的障礙。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_8.png" alt="Slide 8 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-9">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>對話架構三：學生的「回歸文本」與感情融入</h2>
+          <ul>
+          <li>探究與研究的合一：在討論中，師生總是隨時「回歸文本」，在字裡行間尋找依據。這驗證了實踐與研究在探究中是相互依賴的。</li>
+          <li>具體文字的物理轉譯：學生不再只是被動記憶詞義（精緻型符碼的細緻說明），而是將抽象的文學文字，轉譯為具體的物理畫面與角色的情感張力。</li>
+          <li>融入情感的朗讀：經歷深度對話後，學生再次朗讀課文時，自然地融入了對角色心情的深刻共鳴，使知與行在此完美交融。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_9.png" alt="Slide 9 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-10">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>課堂微觀對話分析：大半夜的語境詮釋</h2>
+          <ul>
+          <li>學生主動暴露不懂：有男生主動提出「我不知道什麼是大半夜」，展現開放的心胸。</li>
+          <li>同儕串聯與限制型語境：另一位女生隨即串聯分享，認為是「午夜十二點左右」，透過共同背景展開流暢的對話。</li>
+          <li>教師引導回歸文本線索：教師不給予標準答案（打破技術理性），引導學生翻閱課文，尋找豆太是在「天黑不久後」入睡的線索。</li>
+          <li>時空背景的拼湊：學生最終拼湊出大半夜是午夜十二點到一點，理解了豆太在極度黑暗與寒冷中出門的極限恐懼。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_10.png" alt="Slide 10 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-11">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>課堂微觀對話分析：咬緊牙關的心情體會</h2>
+          <ul>
+          <li>動作的身體知覺出發：對於「咬緊牙齒（牙關）」這個詞，學生首先聯想到身體感受「牙齒咬緊會有點痛」。</li>
+          <li>角色心境的詮釋重構：學生進一步推論，爺爺因為肚子劇痛而在黑暗中咬緊牙關忍耐，是不想讓膽小的豆太擔心。</li>
+          <li>展現同理心的伸展學習：學生從生理的「痛」延伸到心理的「體貼」，透過文本細節深刻同理了爺爺對豆太的愛，以及豆太狂奔救爺爺的決心。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_11.png" alt="Slide 11 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-12">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>認知編修：從自我想法到群體共構的伸展跳躍</h2>
+          <ul>
+          <li>成熟學習者身份的轉化：學生下課時的想法與剛上課時的想法產生了顯著的質變，這是從「新手學習者」邁向「成熟學習者」的象徵。</li>
+          <li>協同學習的伸展跳躍：透過理解「咬緊牙關」與「大半夜」的深意，學生的認知從表面的故事閱讀，跳躍到對人性的體貼與愛的詮釋。</li>
+          <li>文學與真實經驗的串聯：課堂結尾，有學生從家裡帶來了「摩其摩其樹」的真實果實，將文學世界與真實生活經驗進行了溫暖的實物連結。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_12.png" alt="Slide 12 Illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-13">
+      <div class="slide-layout">
+        <div class="slide-text">
+          <h2>課例研究省思與對台灣教育之啟示</h2>
+          <ul>
+          <li>重建教室的聆聽關係：我們應反思以「發言與技術教學」為主的課堂，轉而致力於重建教室中「相互聆聽」的限制型符碼語境與信任關係。</li>
+          <li>從改革主體活出教改經驗：呼應卯靜儒教授的詮釋現象學觀點，教育改革若要能真正落實，必須以師生的「在世存有」與日常經歷（lived experience）為基礎。</li>
+          <li>避免放煙火式的政策：教改不能只追求亮點政策的展示，而應聚焦於關懷教師與學生的主體生成與學習意義，使改革成為學校日常生活的一部分。</li>
+          </ul>
+        </div>
+        <div class="slide-image">
+          <img src="./images/slide_13.png" alt="Slide 13 Illustration">
+        </div>
+      </div>
+    </section>
+    
+    <!-- Navigation Controls -->
+    <div class="controls">
+      <button class="btn" id="prev-btn" onclick="changeSlide(-1)">上一頁</button>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <button class="btn" id="next-btn" onclick="changeSlide(1)">下一頁</button>
+      <span class="slide-counter" id="slide-counter">1 / 13</span>
+    </div>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const slideCounter = document.getElementById('slide-counter');
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === index);
+      });
+      
+      currentSlideIndex = index;
+      
+      // Update buttons
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === totalSlides - 1;
+      
+      // Update progress bar
+      const progressPercent = ((index + 1) / totalSlides) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+      
+      // Update counter
+      slideCounter.innerText = `${index + 1} / ${totalSlides}`;
+    }
+
+    function changeSlide(direction) {
+      let targetIndex = currentSlideIndex + direction;
+      if (targetIndex >= 0 && targetIndex < totalSlides) {
+        showSlide(targetIndex);
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        changeSlide(1);
+      } else if (e.key === 'ArrowLeft') {
+        changeSlide(-1);
+      }
+    });
+
+    // Initialize first slide
+    showSlide(0);
+  </script>
+</body>
+</html>
