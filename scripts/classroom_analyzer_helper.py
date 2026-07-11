@@ -148,75 +148,6 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
             continue
         if line.startswith("# ") or line.startswith("## ") or line.startswith("### "):
             # Heading -> New Slide
-            title = line.replace("#", "").strip()
-            if current_slide:
-                slides_data.append(current_slide)
-            current_slide = {"title": title, "bullets": []}
-        elif line.startswith("-") or line.startswith("*") or line.startswith("1."):
-            # Bullet point
-            bullet = line.lstrip("-*1. ").strip()
-            if current_slide:
-                current_slide["bullets"].append(bullet)
-        elif current_slide and len(line) > 10:
-            # Descriptive text as sub-bullet or paragraph
-            current_slide["bullets"].append(line)
-
-    if current_slide:
-        slides_data.append(current_slide)
-
-    # Ensure at least 12 slides by adding dummy slides if necessary, or breaking down slides
-    expanded_slides = []
-    for s in slides_data:
-        if len(s["bullets"]) > 5:
-            # Break down slide into two parts
-            mid = len(s["bullets"]) // 2
-            expanded_slides.append({"title": s["title"] + " (I)", "bullets": s["bullets"][:mid]})
-            expanded_slides.append({"title": s["title"] + " (II)", "bullets": s["bullets"][mid:]})
-        else:
-            expanded_slides.append(s)
-            
-    while len(expanded_slides) < 12:
-        expanded_slides.append({
-            "title": f"學習共同體課例探究與省思 - 專題討論 ({len(expanded_slides) + 1})",
-            "bullets": [
-                "聚焦微觀對話中的聆聽關係建立",
-                "探究協同合作與伸展跳躍學習的脈絡",
-                "思考教師如何建立公共溝通民主語言"
-            ]
-        })
-
-
-def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
-    """Generates a PPTX presentation based on the analysis text file."""
-    print(f"Generating PPTX slides with style '{style}'...")
-    try:
-        from pptx import Presentation
-        from pptx.util import Inches, Pt
-        from pptx.dml.color import RGBColor
-    except ImportError:
-        print("Error: 'python-pptx' package is not installed. Please run with 'uv run --with python-pptx'.", file=sys.stderr)
-        return 1
-
-    if not analysis_path.exists():
-        print(f"Error: Analysis file {analysis_path} does not exist.", file=sys.stderr)
-        return 1
-
-    try:
-        analysis_text = analysis_path.read_text(encoding="utf-8")
-    except Exception as e:
-        print(f"Error reading analysis file: {e}", file=sys.stderr)
-        return 1
-
-    # Simple outline parser (looks for headings and bullet points)
-    slides_data = []
-    current_slide = None
-    
-    for line in analysis_text.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        if line.startswith("# ") or line.startswith("## ") or line.startswith("### "):
-            # Heading -> New Slide
             title = line.replace("#", "").strip().replace("**", "").replace("*", "")
             if current_slide:
                 slides_data.append(current_slide)
@@ -234,18 +165,20 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
     if current_slide:
         slides_data.append(current_slide)
 
-    # Ensure at least 12 slides by adding dummy slides if necessary, or breaking down slides
+    # Determine target page count based on analysis depth, between 15 and 20 slides
+    target_pages = max(15, min(20, len(slides_data)))
+    
     expanded_slides = []
     for s in slides_data:
-        if len(s["bullets"]) > 5:
-            # Break down slide into two parts
+        # Split slide if it has more than 3 bullets and we need to fill pages up to target_pages
+        if len(s["bullets"]) > 3 and (len(slides_data) + len(expanded_slides) - slides_data.index(s) < target_pages):
             mid = len(s["bullets"]) // 2
             expanded_slides.append({"title": s["title"] + " (I)", "bullets": s["bullets"][:mid]})
             expanded_slides.append({"title": s["title"] + " (II)", "bullets": s["bullets"][mid:]})
         else:
             expanded_slides.append(s)
             
-    while len(expanded_slides) < 12:
+    while len(expanded_slides) < target_pages:
         expanded_slides.append({
             "title": f"學習共同體課例探究與省思 - 專題討論 ({len(expanded_slides) + 1})",
             "bullets": [
@@ -254,6 +187,9 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
                 "思考教師如何建立公共溝通民主語言"
             ]
         })
+        
+    # Limit max pages to 20
+    expanded_slides = expanded_slides[:20]
 
     # Create Presentation
     prs = Presentation()
@@ -269,7 +205,7 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
     }
     style_config = colors.get(style, colors["modern"])
 
-    for i, slide_info in enumerate(expanded_slides[:15]):  # limit to max 15 slides
+    for i, slide_info in enumerate(expanded_slides):
         # Use blank layout
         blank_slide_layout = prs.slide_layouts[6]
         slide = prs.slides.add_slide(blank_slide_layout)
@@ -381,7 +317,7 @@ def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -
     
     slides_html_list = []
     
-    for i, slide_info in enumerate(expanded_slides[:15]):
+    for i, slide_info in enumerate(expanded_slides):
         title = slide_info["title"]
         bullets = slide_info["bullets"][:6]
         
@@ -415,7 +351,7 @@ def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -
         slides_html_list.append(slide_html)
         
     slides_html = "\n".join(slides_html_list)
-    total_slides = len(expanded_slides[:15])
+    total_slides = len(expanded_slides)
     presentation_title = expanded_slides[0]["title"] if expanded_slides else "學習共同體公開課分析"
     
     html_content = f"""<!DOCTYPE html>
@@ -569,17 +505,73 @@ def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -
       min-width: 60px;
       text-align: right;
     }}
+    
+    /* Responsive layout overrides */
+    @media (max-width: 992px) {{
+      .slides-container {{
+        width: 95vw;
+        height: 85vh;
+        min-height: 450px;
+      }}
+      .slide-text h2 {{
+        font-size: 28px;
+      }}
+      .slide-text li {{
+        font-size: 18px;
+        line-height: 1.6;
+      }}
+    }}
     @media (max-width: 768px) {{
-      .slide-layout {{
-        flex-direction: column;
+      body {{
+        overflow: auto;
+        justify-content: flex-start;
+        padding: 10px;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }}
+      .slides-container {{
+        width: 100%;
+        height: auto;
+        min-height: calc(100vh - 20px);
+        border-radius: 12px;
+      }}
+      .slide {{
+        padding: 20px;
         overflow-y: auto;
       }}
+      .slide-layout {{
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+      }}
+      .slide-text {{
+        flex: none;
+      }}
+      .slide-text h2 {{
+        font-size: 24px;
+        margin-bottom: 16px;
+      }}
+      .slide-text li {{
+        font-size: 16px;
+        margin-bottom: 8px;
+      }}
       .slide-image {{
+        flex: none;
         height: auto;
-        margin-top: 20px;
+        margin-top: 10px;
       }}
       .slide-image img {{
-        max-height: 200px;
+        max-width: 100%;
+        max-height: 250px;
+        width: auto;
+        height: auto;
+        aspect-ratio: auto;
+      }}
+      .controls {{
+        padding: 15px 20px;
+      }}
+      .progress-bar-container {{
+        margin: 0 15px;
       }}
     }}
   </style>
@@ -644,6 +636,32 @@ def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -
       }}
     }});
 
+    // Swipe Gestures for touch devices
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const slidesContainer = document.querySelector('.slides-container');
+
+    slidesContainer.addEventListener('touchstart', (e) => {{
+      touchStartX = e.changedTouches[0].screenX;
+    }}, {{ passive: true }});
+
+    slidesContainer.addEventListener('touchend', (e) => {{
+      touchEndX = e.changedTouches[0].screenX;
+      handleGesture();
+    }}, {{ passive: true }});
+
+    function handleGesture() {{
+      const swipeThreshold = 50; // minimum distance in pixels
+      if (touchEndX < touchStartX - swipeThreshold) {{
+        // Swiped left -> Next slide
+        changeSlide(1);
+      }}
+      if (touchEndX > touchStartX + swipeThreshold) {{
+        // Swiped right -> Previous slide
+        changeSlide(-1);
+      }}
+    }}
+
     // Initialize first slide
     showSlide(0);
   </script>
@@ -654,7 +672,6 @@ def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -
     output_html.write_text(html_content, encoding="utf-8")
     print(f"[OK] Created HTML slides: {output_html}")
     return 0
-
 
 def generate_image(text_path: Path, output_png: Path, bg_color: str) -> int:
     """Generates a FB/IG concept image using Pillow."""
