@@ -7,7 +7,7 @@
 2. **影片的語音轉譯字幕檔** (`output/subtitles.srt` 及其對應逐字稿 `output/transcript.txt`)
 3. **簡報投影片（雙格式輸出）**：
    - **PPT 簡報檔** (`output/slides.pptx`)：16:9 寬螢幕比例，文字完全可修正。
-   - **HTML 網頁簡報檔** (`output/slides.html`)：基於網頁格式的互動式簡報，支援左右方向鍵與空白鍵切換、自動響應式排版，完美搭配重繪插圖與主題配色。
+   - **HTML 網頁簡報檔** (output/slides.html)：基於網頁格式的互動式簡報，專為平板與手機等載具進行響應式自適應排版，支援 **Touch Swipe 手勢左右滑動切換頁面** 與鍵盤切換，提供最優質的閱讀感受。
 
 ## 📝 課例研究分析與插圖生成規範
 
@@ -70,8 +70,11 @@ ffmpeg -y -ss 00:01:12 -i output/video.mp4 -vframes 1 -q:v 2 output/screenshots/
 ```
 隨後使用 AI 影像生成工具，以該截圖為基底（`ImagePaths`）重繪為「抹茶綠風格的日本溫潤水彩繪本插畫」，儲存至 `output/images/slide_{N}.png`。
 
-### 4. 生成可編輯文字的 16:9 PPTX / HTML 雙格式簡報
-執行腳本即可產出排版平衡、字級自動計算且不溢出頁面的簡報檔（依據選擇風格傳入對應的 `--style` 參數，HTML 與 PPTX 會同步於同目錄下生成）：
+### 4. 生成可編輯文字的 16:9 PPTX / HTML 雙格式簡報 (動態規劃 15-20 頁)
+執行腳本即可產出排版平衡、字級自動計算且不溢出頁面的簡報檔。
+- **動態頁數**：會依據分析內容長短，將投影片內容頁數自動規劃在 **15 至 20 頁** 之間。
+- **行動自適應與手勢**：HTML 簡報針對手機/平板進行響應式佈局優化，並加入 **Touch Swipe 左右滑動觸控手勢** 換頁，確保不同載具上均有最優質的閱讀感受。
+- 依據選擇風格傳入對應的 `--style` 參數，HTML 與 PPTX 會同步於同目錄下生成：
 ```bash
 # 產生簡報 (例如使用 learning 配色，會自動產出 output/slides.pptx 以及 output/slides.html)
 uv run scripts/classroom_analyzer_helper.py generate-slides --analysis output/analysis.txt --output output/slides.pptx --style learning
