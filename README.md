@@ -91,6 +91,21 @@ uv run scripts/classroom_analyzer_helper.py generate-image --text output/concept
 
 > 簡報生成時會優先讀取 `output/drawings/slide_{N}.png` 作為每頁插圖；若該圖不存在，才會回退讀取舊版相容路徑 `output/images/slide_{N}.png`。
 
+### 5. 最終流程稽核
+在回報專案完成前，必須逐項檢查是否真的完成整個 SLC-skill 工序，而不只是確認簡報檔存在。建議至少核對：
+
+- 是否詢問並記錄簡報風格與影片段落範圍。
+- 是否保留影片、音訊、SRT 字幕與逐字稿；若使用自動字幕或替代來源，是否註明原因。
+- 是否詢問 NotebookLM 筆記架構，並說明是否採用。
+- 是否完成帶時間碼的「描述－詮釋－反思」分析稿。
+- 是否產出 15-20 頁 PPTX 與 HTML 簡報。
+- 是否逐頁建立「投影片文字／SRT 或逐字稿段落／時間碼／原始截圖／重繪圖」對照。
+- 是否產生 `output/screenshots/slide_{N}.png` 原始影格。
+- 是否以原始截圖作為 ImagePaths / `referenced_image_paths` 基底完成 GPTimage2 重繪，並輸出至 `output/drawings/slide_{N}.png`。
+- 是否檢查 PPTX/HTML 實際引用 `output/drawings/` 且可正常開啟。
+
+若任何項目未完成，最終回報必須明確標示「未完成」或「以替代方式完成」，並列出原因與下一步補齊方式；不得直接宣稱已完整完成 skill 流程。
+
 ## 📄 授權協議
 
 本專案採用 [MIT License](LICENSE) 授權。
