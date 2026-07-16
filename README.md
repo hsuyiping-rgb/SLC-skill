@@ -1,6 +1,6 @@
 # SLC-skill (學習共同體課例探究與 16:9 簡報生成技能)
 
-這個儲存庫封裝了「學習共同體（Study of Learning Community, SLC）」課堂公開課影片的分析、轉譯、關鍵畫格擷取重繪、以及 16:9 PowerPoint / 互動式 HTML 簡報排版雙重格式生成流程。
+這個儲存庫封裝了「學習共同體（Study of Learning Community, SLC）」課堂公開課影片的分析、轉譯、逐頁關鍵畫格擷取、GPTimage2 重繪，以及 16:9 PowerPoint / 互動式 HTML 簡報排版雙重格式生成流程。新版流程會依據每頁簡報文字，回到 SRT 字幕與逐字稿段落定位最貼合的影片影格，再以截圖作為 ImagePaths 基底重繪為日本溫潤水彩繪本插圖。
 
 ## 🎯 最終產出成品包括：
 1. **下載的完整影片** (`output/video.mp4`)
@@ -8,6 +8,9 @@
 3. **簡報投影片（雙格式輸出）**：
    - **PPT 簡報檔** (`output/slides.pptx`)：16:9 寬螢幕比例，文字完全可修正。
    - **HTML 網頁簡報檔** (output/slides.html)：基於網頁格式的互動式簡報，專為平板與手機等載具進行響應式自適應排版，支援 **Touch Swipe 手勢左右滑動切換頁面** 與鍵盤切換，提供最優質的閱讀感受。
+4. **逐頁截圖與 AI 重繪插圖**：
+   - **原始影片影格** (`output/screenshots/slide_{N}.png`)：依據每頁簡報內容、SRT 與逐字稿段落擷取。
+   - **AI 重繪插圖** (`output/drawings/slide_{N}.png`)：以對應截圖作為 ImagePaths 基底，重繪為日本溫潤水彩繪本插畫風格。
 
 ## 📝 課例研究分析與插圖生成規範
 
@@ -19,8 +22,11 @@
 4. **探究多維關係**：分析學生與**教材、同伴及先前理解**之間的關係。
 5. **SLC 哲學探究**：探究**傾聽關係、互惠學習、言談權力、伸展跳躍任務及質性時間**。
 6. **去評價、去建言立場**：採取客觀、描述性的**去評價與去建言立場**，聚焦於學生的「學習事實」本身，避免將觀課議課變成對授課教師的優缺點打分或指導。
-7. **日系水彩／抹茶綠繪本生圖風格**：
-   - 擷取畫格並使用 `generate_image` (GPTimage2) 進行重繪插圖時，必須指示繪圖引擎將畫面重繪為一致的**「日系水彩／抹茶綠繪本風格」**（Japanese watercolor / Matcha green picture book style）。
+7. **逐頁影格擷取與日本溫潤水彩繪本重繪**：
+   - 先取得每頁簡報的標題、內文與分析焦點，再對照 `output/subtitles.srt` 與 `output/transcript.txt` 找出最貼近該頁內容的課堂段落。
+   - 使用 `ffmpeg` 依段落時間碼擷取原始影格，儲存至 `output/screenshots/slide_{N}.png`。
+   - 使用 `generate_image` (GPTimage2) 時，必須把該截圖作為 ImagePaths / `referenced_image_paths` 基底，不能只用文字提示生成。
+   - 重繪圖統一輸出至新增的 `output/drawings/slide_{N}.png`，風格為一致的**「日本溫潤水彩繪本插畫風格」**（warm Japanese watercolor picture-book illustration style）。
    - **畫面主體聚焦**：畫面必須聚焦在學生的**學習、傾聽、指著圖表（指圖）與共同推理**。
    - **角色過濾規則**：**完全移除外圍的觀課教師**；而**授課教師**只有在「直接參與學生學習與小組互動」時才得以保留於重繪畫面中。
 
@@ -63,12 +69,12 @@ whisper output/audio.mp3 --model medium --language zh -o output/ -f srt
 - **詢問使用者**：「請問您有沒有要連接 NotebookLM 的筆記來作為簡報分析的架構？如果有，請提供筆記的名稱（與內容）。」
 - 將 NotebookLM 筆記的結構與內容，作為生成簡報分析報告 (`analysis.txt`) 的核心架構，再對齊語音逐字稿進行「描述-詮釋-反思」三階層分析。
 
-### 3. 擷取影片畫面與 GPTimage2 重繪
-利用 `ffmpeg` 擷取影片關鍵影格：
+### 3. 依每頁簡報文字擷取影片畫面與 GPTimage2 重繪
+先完成簡報大綱或初版投影片，逐頁建立「頁碼、頁面標題、對應逐字稿段落、SRT 時間碼、截圖路徑、重繪路徑」對照表。接著利用 `ffmpeg` 擷取每頁最貼合內容的影片關鍵影格：
 ```bash
-ffmpeg -y -ss 00:01:12 -i output/video.mp4 -vframes 1 -q:v 2 output/screenshots/screenshot_4.png
+ffmpeg -y -ss 00:01:12 -i output/video.mp4 -frames:v 1 -q:v 2 output/screenshots/slide_4.png
 ```
-隨後使用 AI 影像生成工具，以該截圖為基底（`ImagePaths`）重繪為「抹茶綠風格的日本溫潤水彩繪本插畫」，儲存至 `output/images/slide_{N}.png`。
+隨後使用 AI 影像生成工具，以該截圖為基底（`ImagePaths` / `referenced_image_paths`），搭配該頁簡報文字與逐字稿段落，重繪為「日本溫潤水彩繪本插畫風格」，儲存至新增的 `output/drawings/slide_{N}.png`。
 
 ### 4. 生成可編輯文字的 16:9 PPTX / HTML 雙格式簡報 (動態規劃 15-20 頁)
 執行腳本即可產出排版平衡、字級自動計算且不溢出頁面的簡報檔。
@@ -82,6 +88,8 @@ uv run scripts/classroom_analyzer_helper.py generate-slides --analysis output/an
 # 產生 FB/IG 分享概念圖
 uv run scripts/classroom_analyzer_helper.py generate-image --text output/concept.txt --output output/concept_post.png --style learning
 ```
+
+> 簡報生成時會優先讀取 `output/drawings/slide_{N}.png` 作為每頁插圖；若該圖不存在，才會回退讀取舊版相容路徑 `output/images/slide_{N}.png`。
 
 ## 📄 授權協議
 

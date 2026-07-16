@@ -238,12 +238,17 @@ def generate_slides(analysis_path: Path, output_pptx: Path, style: str) -> int:
         p.font.bold = True
         p.font.color.rgb = style_config["title"]
         
-        # Determine if we should insert an illustration on this slide
+        # Determine if we should insert an illustration on this slide.
+        # Prefer AI redraws in output/drawings; keep output/images as a legacy fallback.
         illustration_path = None
-        images_dir = Path("output/images")
-        p_img = images_dir / f"slide_{i+1}.png"
+        drawings_dir = output_pptx.parent / "drawings"
+        legacy_images_dir = output_pptx.parent / "images"
+        p_img = drawings_dir / f"slide_{i+1}.png"
+        legacy_img = legacy_images_dir / f"slide_{i+1}.png"
         if p_img.exists():
             illustration_path = str(p_img)
+        elif legacy_img.exists():
+            illustration_path = str(legacy_img)
 
         # Content Box Width: default is 11.733 inches if no illustration, or 6.5 inches if illustration
         content_width = Inches(6.5) if illustration_path else Inches(11.733)
@@ -322,11 +327,15 @@ def generate_html_slides(expanded_slides: list, output_html: Path, style: str) -
         bullets = slide_info["bullets"][:6]
         
         # Check if illustration exists
-        illustration_src = f"./images/slide_{i+1}.png"
-        images_dir = output_html.parent / "images"
-        p_img = images_dir / f"slide_{i+1}.png"
+        illustration_src = f"./drawings/slide_{i+1}.png"
+        drawings_dir = output_html.parent / "drawings"
+        legacy_images_dir = output_html.parent / "images"
+        p_img = drawings_dir / f"slide_{i+1}.png"
+        legacy_img = legacy_images_dir / f"slide_{i+1}.png"
         
-        has_image = p_img.exists()
+        has_image = p_img.exists() or legacy_img.exists()
+        if not p_img.exists() and legacy_img.exists():
+            illustration_src = f"./images/slide_{i+1}.png"
         
         bullets_html = "\n".join(f"          <li>{b}</li>" for b in bullets)
         
