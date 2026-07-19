@@ -1,111 +1,61 @@
-# SLC-skill (學習共同體課例探究與 16:9 簡報生成技能)
+# SLC-skill｜學習共同體課例探究與簡報生成
 
-這個儲存庫封裝了「學習共同體（Study of Learning Community, SLC）」課堂公開課影片的分析、轉譯、逐頁關鍵畫格擷取、GPTimage2 重繪，以及 16:9 PowerPoint / 互動式 HTML 簡報排版雙重格式生成流程。新版流程會依據每頁簡報文字，回到 SRT 字幕與逐字稿段落定位最貼合的影片影格，再以截圖作為 ImagePaths 基底重繪為日本溫潤水彩繪本插圖。
+此 Skill 將公開課影片轉化為可追溯的學習共同體課例分析，並輸出最高畫質影片、雙語字幕、16:9 PPTX、一頁式 HTML 與連續角色插圖。
 
-## 🎯 最終產出成品包括：
-1. **下載的完整影片** (`output/video.mp4`)
-2. **影片的語音轉譯字幕檔** (`output/subtitles.srt` 及其對應逐字稿 `output/transcript.txt`)
-3. **簡報投影片（雙格式輸出）**：
-   - **PPT 簡報檔** (`output/slides.pptx`)：16:9 寬螢幕比例，文字完全可修正。
-   - **HTML 網頁簡報檔** (output/slides.html)：基於網頁格式的互動式簡報，專為平板與手機等載具進行響應式自適應排版，支援 **Touch Swipe 手勢左右滑動切換頁面** 與鍵盤切換，提供最優質的閱讀感受。
-4. **逐頁截圖與 AI 重繪插圖**：
-   - **原始影片影格** (`output/screenshots/slide_{N}.png`)：依據每頁簡報內容、SRT 與逐字稿段落擷取。
-   - **AI 重繪插圖** (`output/drawings/slide_{N}.png`)：以對應截圖作為 ImagePaths 基底，重繪為日本溫潤水彩繪本插畫風格。
+## 核心產出
 
-## 📝 課例研究分析與插圖生成規範
+- 最高畫質影片與音訊
+- 原語 SRT（含中文、日文發音）與原語／繁中雙語 SRT
+- 對齊 NotebookLM 架構的「描述－詮釋－反思」分析稿
+- 逐頁影片影格、16:9 日本溫潤水彩繪本插圖、1080×1920 直式影片插圖
+- 可編輯 16:9 PPTX 與一頁式向下捲動 HTML
 
-當執行本技能時，應遵循以下七大核心規範：
+## 完整工作流程
 
-1. **時間戳記標記**：課例研究分析報告必須以影片的**時間碼（如 `12:34`）**精確標記課堂教學事件與學生互動。
-2. **三階層分析**：分析明確區分並落實**「描述－詮釋－反思」**三個分析層次。
-3. **聚焦微觀行為**：聚焦學生的**語言、眼神、姿態、手勢、沉默與同伴互動**。
-4. **探究多維關係**：分析學生與**教材、同伴及先前理解**之間的關係。
-5. **SLC 哲學探究**：探究**傾聽關係、互惠學習、言談權力、伸展跳躍任務及質性時間**。
-6. **去評價、去建言立場**：採取客觀、描述性的**去評價與去建言立場**，聚焦於學生的「學習事實」本身，避免將觀課議課變成對授課教師的優缺點打分或指導。
-7. **逐頁影格擷取與日本溫潤水彩繪本重繪**：
-   - 先取得每頁簡報的標題、內文與分析焦點，再對照 `output/subtitles.srt` 與 `output/transcript.txt` 找出最貼近該頁內容的課堂段落。
-   - 使用 `ffmpeg` 依段落時間碼擷取原始影格，儲存至 `output/screenshots/slide_{N}.png`。
-   - 使用 `generate_image` (GPTimage2) 時，必須把該截圖作為 ImagePaths / `referenced_image_paths` 基底，不能只用文字提示生成。
-   - 重繪圖統一輸出至新增的 `output/drawings/slide_{N}.png`，風格為一致的**「日本溫潤水彩繪本插畫風格」**（warm Japanese watercolor picture-book illustration style）。
-   - **畫面主體聚焦**：畫面必須聚焦在學生的**學習、傾聽、指著圖表（指圖）與共同推理**。
-   - **角色過濾規則**：**完全移除外圍的觀課教師**；而**授課教師**只有在「直接參與學生學習與小組互動」時才得以保留於重繪畫面中。
+1. 選擇 `learning`、`pastel`、`blue` 或 `modern` 視覺主題。
+2. 下載 YouTube 可取得的最高畫質視訊，合併最佳相容音訊。
+3. 以 medium 等級語音辨識建立原語字幕；保留影片中的中文與日文發音，再對齊繁中內容輸出雙語字幕。
+4. 詢問是否使用 NotebookLM 筆記，並以指定的學習共同體哲學架構完成帶時間碼的分析。
+5. 逐頁對照投影片標題、分析焦點、SRT、逐字稿與影片時間碼，擷取原始影格。
+6. 先只生成第一頁 PPTX 與插圖預覽；使用者確認後才批量製作其餘頁面。
+7. 每頁使用對應影格作為 `referenced_image_paths` 基底，重繪日本溫潤水彩繪本插圖。不可僅用文字提示生圖。
+8. 第一頁插圖成為角色連續性母圖：後續頁面固定教師、學生外觀、座位、桌椅與教室配置，只調整動作、表情與眼神。
+9. 移除觀課師長；授課教師只在直接參與學生學習時保留。人物與教室物件完整入鏡，黑板不得有可讀文字。
+10. 使用固定簡報母版：上方白色標題框、左側白色文字卡、右側 16:9 插圖。內文字級以 26–28 pt 為目標，先重寫完整句意再調整版面。
+11. 以最終 PPTX 為文字來源生成一頁式、向下捲動 HTML，使用相同插圖與固定頁碼導覽。
+12. 完成影片解析度、字幕時間碼、圖片比例、文字不溢出、HTML 無問號／亂碼／失效連結的檢核後，再分類交付檔案。
 
-## 📁 目錄結構
+## 必要規則
 
-```
-SLC-skill/
-├── .gitignore
-├── LICENSE
-├── README.md
-├── SKILL.md
-└── scripts/
-    └── classroom_analyzer_helper.py
-```
+- 影片必須使用可取得的最高畫質，不得以低畫質便利格式替代。
+- 橫式插圖必須為 16:9，直式插圖最終尺寸必須為 1080×1920。
+- PPTX 文字不得被插圖遮蔽、不得超出文字框或頁面；不可將插圖拉伸成正方形。
+- 分析段落不得用硬切字數的方式縮短，必須保留可獨立理解的完整語意。
+- HTML 必須是單一頁面、向下捲動，而非投影片左右切換介面。
 
-## 🎨 支援的簡報風格選項（提供使用者選擇）：
-1. **`learning`**：學習共同體哲學配色（抹茶綠/茶白背景、松針綠標題、石板灰內文）。
-2. **`pastel`**：暖色教育風（暖白背景、深褐標題、柔黑內文）。
-3. **`blue`**：科技藍商務風（淡藍灰背景、海軍藍標題、藍灰內文）。
-4. **`modern`**：極簡黑白風（極淡灰背景、曜石黑標題、中灰內文）。
+## 交付檔案結構
 
----
-
-## 🚀 快速使用指南
-
-### 1. 課堂影片準備
-如果是私密影片，請先取得登入 Cookie 並匯出為 `cookies.txt`，接著下載完整影片檔案並擷取音訊進行轉譯：
-```bash
-# 下載完整影片 (mp4 格式)
-yt-dlp --cookies cookies.txt --js-runtimes node --remote-components ejs:github -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" -o output/video.mp4 "https://www.youtube.com/watch?v=VIDEO_ID"
-
-# 分離出音訊檔
-ffmpeg -i output/video.mp4 -q:a 0 -map a output/audio.mp3
-
-# 使用 Whisper 轉譯生成 srt 字幕與逐字稿
-whisper output/audio.mp3 --model medium --language zh -o output/ -f srt
+```text
+output/
+├── 字幕檔/       # 原語 SRT、雙語 SRT、逐字稿與分段辨識
+├── 簡報/         # PPTX、單頁 HTML、分析稿
+├── 影片/         # 最高畫質影片與音訊
+├── 圖檔/         # 社群圖與橫式素材
+├── screenshots/  # 逐頁原始影片影格
+├── drawings/     # 16:9 重繪插圖
+└── drawings_vertical/ # 1080×1920 直式插圖
 ```
 
-### 2. 詢問 NotebookLM 連接與課例研究分析
-- **詢問使用者**：「請問您有沒有要連接 NotebookLM 的筆記來作為簡報分析的架構？如果有，請提供筆記的名稱（與內容）。」
-- 將 NotebookLM 筆記的結構與內容，作為生成簡報分析報告 (`analysis.txt`) 的核心架構，再對齊語音逐字稿進行「描述-詮釋-反思」三階層分析。
+## 安裝
 
-### 3. 依每頁簡報文字擷取影片畫面與 GPTimage2 重繪
-先完成簡報大綱或初版投影片，逐頁建立「頁碼、頁面標題、對應逐字稿段落、SRT 時間碼、截圖路徑、重繪路徑」對照表。接著利用 `ffmpeg` 擷取每頁最貼合內容的影片關鍵影格：
-```bash
-ffmpeg -y -ss 00:01:12 -i output/video.mp4 -frames:v 1 -q:v 2 output/screenshots/slide_4.png
-```
-隨後使用 AI 影像生成工具，以該截圖為基底（`ImagePaths` / `referenced_image_paths`），搭配該頁簡報文字與逐字稿段落，重繪為「日本溫潤水彩繪本插畫風格」，儲存至新增的 `output/drawings/slide_{N}.png`。
+將整個資料夾複製到 Codex 全域技能目錄：
 
-### 4. 生成可編輯文字的 16:9 PPTX / HTML 雙格式簡報 (動態規劃 15-20 頁)
-執行腳本即可產出排版平衡、字級自動計算且不溢出頁面的簡報檔。
-- **動態頁數**：會依據分析內容長短，將投影片內容頁數自動規劃在 **15 至 20 頁** 之間。
-- **行動自適應與手勢**：HTML 簡報針對手機/平板進行響應式佈局優化，並加入 **Touch Swipe 左右滑動觸控手勢** 換頁，確保不同載具上均有最優質的閱讀感受。
-- 依據選擇風格傳入對應的 `--style` 參數，HTML 與 PPTX 會同步於同目錄下生成：
-```bash
-# 產生簡報 (例如使用 learning 配色，會自動產出 output/slides.pptx 以及 output/slides.html)
-uv run scripts/classroom_analyzer_helper.py generate-slides --analysis output/analysis.txt --output output/slides.pptx --style learning
-
-# 產生 FB/IG 分享概念圖
-uv run scripts/classroom_analyzer_helper.py generate-image --text output/concept.txt --output output/concept_post.png --style learning
+```text
+C:\Users\<user>\.codex\skills\slc-skill
 ```
 
-> 簡報生成時會優先讀取 `output/drawings/slide_{N}.png` 作為每頁插圖；若該圖不存在，才會回退讀取舊版相容路徑 `output/images/slide_{N}.png`。
+重新開啟工作階段後即可用 `slc-skill` 啟動流程。
 
-### 5. 最終流程稽核
-在回報專案完成前，必須逐項檢查是否真的完成整個 SLC-skill 工序，而不只是確認簡報檔存在。建議至少核對：
+## 授權
 
-- 是否詢問並記錄簡報風格與影片段落範圍。
-- 是否保留影片、音訊、SRT 字幕與逐字稿；若使用自動字幕或替代來源，是否註明原因。
-- 是否詢問 NotebookLM 筆記架構，並說明是否採用。
-- 是否完成帶時間碼的「描述－詮釋－反思」分析稿。
-- 是否產出 15-20 頁 PPTX 與 HTML 簡報。
-- 是否逐頁建立「投影片文字／SRT 或逐字稿段落／時間碼／原始截圖／重繪圖」對照。
-- 是否產生 `output/screenshots/slide_{N}.png` 原始影格。
-- 是否以原始截圖作為 ImagePaths / `referenced_image_paths` 基底完成 GPTimage2 重繪，並輸出至 `output/drawings/slide_{N}.png`。
-- 是否檢查 PPTX/HTML 實際引用 `output/drawings/` 且可正常開啟。
-
-若任何項目未完成，最終回報必須明確標示「未完成」或「以替代方式完成」，並列出原因與下一步補齊方式；不得直接宣稱已完整完成 skill 流程。
-
-## 📄 授權協議
-
-本專案採用 [MIT License](LICENSE) 授權。
+[MIT License](LICENSE)
