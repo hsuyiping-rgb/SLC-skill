@@ -33,6 +33,8 @@ description: >-
 - **python-pptx** (簡報產生工具)
 - **Pillow** (社群圖生成與文字繪製工具)
 - **yt-dlp** (影片下載工具，建議附帶 Node.js 以便順利執行 JS 解密)
+- **classroom-video-analysis 技能**（字幕轉譯與校正腳本 `scripts/subtitle_qc.py`；安裝：`git clone https://github.com/hsuyiping-rgb/classroom-video-analysis.git ~/.claude/skills/classroom-video-analysis`）
+- **groq**（`pip install groq`）與使用者自備的 `GROQ_API_KEY`；本機備援需 **openai-whisper**
 
 ---
 
@@ -101,23 +103,39 @@ description: >-
 - 下載 YouTube 可取得的**最高畫質視訊**與最佳相容音訊，合併為 `output/影片/video.mp4`；不得以 360p 或便利格式取代最高可得格式。
 - 自行使用 `ffmpeg` 擷取音軌為 `output/影片/audio.mp3`。
 
-#### 1-a. 語音辨識：詢問使用者選擇轉譯引擎
-- **主動提供兩個選項，並說明優先順序**：
-  1. **Groq（優先推薦）**：使用 Groq Whisper-large-v3-turbo，速度快、附 word-level 時間碼，適合長時間課堂錄影。詢問使用者是否已有 Groq API Key；若沒有，提供申請網址 **https://console.groq.com/keys**（以 Google 帳號免費註冊即可建立），請使用者自行登入取得 Key 後貼給 Agent，或設定為環境變數 `GROQ_API_KEY`（亦可存成 `%USERPROFILE%\.groq_api_key`）。**Agent 不得代替使用者註冊帳號或輸入密碼。**
-  2. **本機 Whisper（備援）**：使用者無法或不願申請 Groq、無網路、或明確指定時，改用本機 `whisper --model medium`（或同等品質模型）。
-- Groq 路線直接調用 `groq-subtitle` 技能的腳本（`~/.claude/skills/groq-subtitle/`：`transcribe_groq.py` → `word_to_srt.py` → `validate_srt.py`），檔案 > 24 MB 會自動壓縮；輸出簡體時由 OpenCC 自動轉繁。
-- 若 Groq 呼叫失敗（Key 無效、額度用盡、網路錯誤），回報原因並詢問是否切換至本機 Whisper，不得自行靜默切換。
-- 無論哪一路線，都必須保留影片中的中文與日文發音；長片可分段辨識後依原始時間碼合併。辨識初稿存為 `output/字幕檔/subtitles.raw.srt`。
+#### 1-a. 語音辨識與字幕校正：直接調用 classroom-video-analysis 的腳本
+字幕轉譯與校正是本技能與 `classroom-video-analysis` 共同的基本功，**不要在本技能內另寫一套流程**，一律呼叫該技能的 `~/.claude/skills/classroom-video-analysis/scripts/subtitle_qc.py`（子命令 `boost`／`transcribe`／`clean`／`collate`／`verify`／`merge`）。若該技能尚未安裝，先 `git clone https://github.com/hsuyiping-rgb/classroom-video-analysis.git` 到 `~/.claude/skills/`。
 
-#### 1-b. 第二次字幕校正：以課室用語與教材修正
-- **辨識完成後必須進行第二次校正**，不可直接拿初稿產出雙語字幕或進入分析。
-- **主動提醒使用者夾帶參考檔案**：詢問「請問您可以提供本堂課的教材（課本頁面、學習單、教案、PPT、板書照片）或這堂課的專有名詞清單嗎？我會用它們來校正字幕中的專有名詞、學生姓名與課室用語。」支援格式：PDF、DOCX、PPTX、TXT、圖片。
-- 校正依據（依優先順序）：
-  1. 使用者夾帶的教材與名詞清單（單元名稱、概念詞、教具名、學生／老師稱謂）。
-  2. 學習共同體課室用語：如「伸展跳躍」「共有課題」「串連」「回歸」「傾聽」「協同學習」「學習單」「小組」「發表」等。
-  3. `groq-subtitle/apply_vocab.py` 內建的 `VOCAB_MAP`（如「劣勢→列式」「解評→解題」「斷考→段考」）。
-- 校正 **三條紅線**：時間碼行一字不動、段數不增不減、不增刪內容只修文字品質（錯字、標點、同音字、專有名詞）。
-- 校正後最少輸出兩份字幕：`subtitles.original.multilingual.srt`（原語，保留中文與日文發音）與 `subtitles.bilingual.zh-TW.srt`（每段原語加上對齊的繁中內容），並產出完整逐字稿。**影片、原語字幕、雙語字幕與逐字稿均為最終成品，不得刪除**。
+- **詢問轉譯引擎（主動提供兩個選項）**：
+  1. **Groq（優先推薦）**：`subtitle_qc.py transcribe` 使用 Groq Whisper-large-v3-turbo。詢問使用者是否已有 Groq API Key；若沒有，提供申請網址 **https://console.groq.com/keys**（以 Google 帳號免費註冊即可建立），請使用者自行取得 Key 後設定環境變數 `GROQ_API_KEY`。**Agent 不得代替使用者註冊帳號或輸入密碼。**
+  2. **本機 Whisper（備援）**：使用者無法或不願申請 Groq、無網路、或明確指定時，改用本機 `whisper --model medium`（或同等品質模型）產出初稿；後續 `clean`／`collate` 步驟仍照常套用。
+- 若 Groq 呼叫失敗（Key 無效、額度用盡、網路錯誤），回報原因並詢問是否切換至本機 Whisper，不得自行靜默切換。
+- **先向使用者要教材**：「這堂課上的是哪一課？可以提供課本 PDF、學習單、教案、PPT、板書照片或專有名詞清單嗎？」支援格式：PDF、DOCX、PPTX、TXT、圖片。沒有教材，朗讀段就只能靠猜。
+
+**執行順序**（路徑依本技能的 `output/影片/`、`output/字幕檔/` 分類）：
+```powershell
+# ① 音訊增益：課堂錄影平均音量常低於 -30 dB，學生發言辨識不出來，幾乎一定要做
+python "$env:USERPROFILE\.claude\skills\classroom-video-analysis\scripts\subtitle_qc.py" boost --input output/影片/audio.mp3 --output output/影片/audio_boost.mp3
+
+# ② 建立兩層詞彙表（教材層 + 課堂語言層；格式見該技能 scripts/vocab.example.txt），只能是純名詞，不可寫成句子
+#    課堂語言層請加入學習共同體用語：伸展跳躍、共有課題、串連、回歸、傾聽、協同學習、學習單、小組、發表…
+# ③ 轉譯（Groq 路線）
+python "$env:USERPROFILE\.claude\skills\classroom-video-analysis\scripts\subtitle_qc.py" transcribe --input output/影片/audio_boost.mp3 --vocab output/字幕檔/vocab.txt --output output/字幕檔/subtitles.raw.srt --transcript output/字幕檔/transcript.raw.txt
+#    （本機 Whisper 路線改為：whisper output/影片/audio_boost.mp3 --model medium --language zh -o output/字幕檔/ -f srt，再改名為 subtitles.raw.srt）
+
+# ④ 清理：Whisper 訓練資料污染、簡體字、重複迴圈與靜音段亂碼
+python "$env:USERPROFILE\.claude\skills\classroom-video-analysis\scripts\subtitle_qc.py" clean --input output/字幕檔/subtitles.raw.srt --output output/字幕檔/subtitles.clean.srt
+
+# ⑤ 對照教材校正（第二次校正）：讀教材寫 collate_map.json，cues 只用於可逐字對齊的朗讀段，terms 只用於無歧義專有名詞
+python "$env:USERPROFILE\.claude\skills\classroom-video-analysis\scripts\subtitle_qc.py" collate --input output/字幕檔/subtitles.clean.srt --output output/字幕檔/subtitles.original.multilingual.srt --map output/字幕檔/collate_map.json
+
+# ⑥ 重聽確認：凡是要拿來當分析立論基礎的句子都要重聽；額外跑一次不帶 --vocab 的版本當對照
+python "$env:USERPROFILE\.claude\skills\classroom-video-analysis\scripts\subtitle_qc.py" verify --input output/影片/audio_boost.mp3 --start 21:00 --duration 30 --vocab output/字幕檔/vocab.txt
+```
+- 校正 **三條紅線**：時間碼行一字不動、段數不增不減、不增刪內容只修文字品質；**不要把學生的口語硬改成書面語**——口語的不完整正是課例分析的材料。
+- **只要某個引用讓你想寫出「學生答錯了」，就一定要 `verify` 重聽**（該技能實測過 Whisper 把「五歲」聽成「50 歲」）。
+- 校正後保留影片中的中文與日文發音，再對齊繁中內容產出 `subtitles.bilingual.zh-TW.srt` 與完整逐字稿 `transcript.txt`。**影片、原語字幕、雙語字幕與逐字稿均為最終成品，不得刪除**。
+- 字幕完成後回到本技能的分析視角（步驟 2 起）；若使用者另需議課播放用的燒字幕片段，改呼叫 `classroom-video-analysis` 的 `burn`。
 
 ### 2. 詢問 NotebookLM 連接與課例分析架構
 - **在開始撰寫課例分析報告前，必須主動詢問使用者：「請問您有沒有要連接 NotebookLM 的筆記來作為簡報分析的架構？如果有，請提供筆記的名稱（及筆記內容）。」**
@@ -158,7 +176,8 @@ description: >-
 ---
 
 ## Common Mistakes
-* **未詢問轉譯引擎、或跳過第二次字幕校正**：未提供 Groq／本機 Whisper 選項就直接辨識；或辨識後未提醒使用者夾帶教材、未用課室用語校正就產出雙語字幕或進入分析。
+* **未詢問轉譯引擎、或跳過字幕校正**：未提供 Groq／本機 Whisper 選項就直接辨識；或辨識後未向使用者要教材、未跑 `clean`／`collate`／`verify` 就產出雙語字幕或進入分析。
+* **在本技能內另寫一套字幕流程**：字幕轉譯與校正一律調用 `classroom-video-analysis/scripts/subtitle_qc.py`，避免兩個技能各自維護、日後互相走樣。
 * **代使用者註冊 Groq 或處理密碼**：只能提供申請網址並請使用者自行取得 API Key，不可代為建立帳號或輸入密碼。
 * **刪除影片或字幕檔案**：工作流結束後不應為了清理而刪除下載的影片 (`output/video.mp4`) 或轉譯的字幕檔 (`output/subtitles.srt`)，這兩者是使用者要求的重要研究成果。
 * **未詢問 NotebookLM 筆記**：直接套用預設架構而忽略了使用者已在 NotebookLM 整理好的現成結構，導致產出簡報與其教學研究脈絡不符。
